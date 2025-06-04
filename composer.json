@@ -1,0 +1,25 @@
+{
+    "name": "kpzsproductions/challengify",
+    "description": "Challengify is a platform for daily micro-challenges in creativity, wellness, and skills, where users complete tasks, share responses, and earn badges through community voting.",
+    "type": "project",
+    "require": {
+        "nikic/fast-route": "^1.3",
+        "vlucas/phpdotenv": "^5.6",
+        "respect/validation": "^2.4",
+        "catfan/medoo": "^2.2",
+        "filp/whoops": "^2.18",
+        "phpmailer/phpmailer": "^6.10",
+        "symfony/http-foundation": "^7.3"
+    },
+    "license": "proprietary",
+    "autoload": {
+        "psr-4": {
+            "Kpzsproductions\\Challengify\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "KPZsProductions"
+        }
+    ]
+}
