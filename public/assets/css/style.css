@@ -1,291 +1,266 @@
-/* Custom CSS for Challengify */
-
-/* Custom colors and overrides */
-:root {
-  --primary-color: #4e73df;
-  --primary-dark: #2e59d9;
-  --secondary-color: #f8f9fc;
-  --accent-color: #f6c23e;
-  --success-color: #1cc88a;
-  --danger-color: #e74a3b;
-  --dark-color: #5a5c69;
+:root{
+    --font-family: 'Poppins', sans-serif;
+    --primary-color: #3B82F6;
+    --primary-dark: #1D4ED8;
+    --secondary-color: #4F46E5;
+    --text-color: #1F2937;
+    --text-light: #6B7280;
+    --bg-light: #F9FAFB;
+    --bg-dark: #111827;
+    --success-color: #10B981;
+    --error-color: #EF4444;
+    --warning-color: #F59E0B;
+    --border-radius: 0.5rem;
+    --box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --transition: all 0.3s ease;
 }
 
-/* Global styles */
-body {
-  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+body{
+    font-family: var(--font-family);
+    color: var(--text-color);
+    line-height: 1.6;
+    background-color: var(--bg-light);
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-/* Tailwind compatibility fixes */
-/* Use these classes when Tailwind 3 classes aren't available in Tailwind 2.2.19 */
-.bg-opacity-10 {
-  --tw-bg-opacity: 0.1;
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
 }
 
-.backdrop-blur {
-  backdrop-filter: blur(8px);
+/* Basic Typography */
+h1, h2, h3, h4, h5, h6 {
+    line-height: 1.2;
+    margin-bottom: 1rem;
+    font-weight: 600;
 }
 
-.transform-gpu {
-  transform: translateZ(0);
+p {
+    margin-bottom: 1rem;
 }
 
-/* Custom button hover effects */
+/* Links */
+a {
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    text-align: center;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+    background-color: var(--primary-dark);
 }
 
-/* Hero section enhancements */
-header.bg-primary {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-  position: relative;
-  overflow: hidden;
+.btn-outline {
+    background-color: transparent;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
 }
 
-header.bg-primary::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background-image: url('/assets/images/pattern.svg');
-  background-size: cover;
-  opacity: 0.1;
-}
-
-/* Card hover effects */
-.card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-}
-
-/* Feature icon animations */
-.feature-icon {
-  transition: all 0.3s ease;
-}
-
-.feature-icon:hover {
-  transform: scale(1.1);
-}
-
-/* Custom styling for sections */
-section {
-  padding: 60px 0;
-}
-
-/* Footer enhancements */
-footer a:hover {
-  color: var(--accent-color) !important;
-  text-decoration: none;
-}
-
-/* Navigation active state */
-.navbar-nav .nav-link.active {
-  font-weight: bold;
-  border-bottom: 2px solid white;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  header.py-5 {
-    padding-top: 3rem !important;
-    padding-bottom: 3rem !important;
-  }
-  
-  section {
-    padding: 40px 0;
-  }
-  
-  .display-4 {
-    font-size: 2.5rem;
-  }
+.btn-outline:hover {
+    background-color: var(--primary-color);
+    color: white;
 }
 
 /* Animations */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.hover-scale {
+    transition: transform 0.3s ease;
 }
 
-.fadeInUp {
-  animation: fadeInUp 0.5s ease-out;
+.hover-scale:hover {
+    transform: scale(1.05);
 }
 
-/* Registration form styles */
-.auth-form-container {
-  max-width: 550px;
-  margin: 0 auto;
+/* Responsive images */
+img {
+    max-width: 100%;
+    height: auto;
 }
 
-.card {
-  border-radius: 1rem;
-  box-shadow: 0 15px 35px rgba(50, 50, 93, 0.1), 0 5px 15px rgba(0, 0, 0, 0.07);
+/* Container */
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
 }
 
-.form-label {
-  font-weight: 600;
-  color: var(--dark-color);
+/* Utility classes */
+.text-center {
+    text-align: center;
 }
 
-.input-group-text {
-  background-color: var(--secondary-color);
-  border-right: none;
+.text-primary {
+    color: var(--primary-color);
 }
 
-.form-control {
-  border-left: none;
+.bg-primary {
+    background-color: var(--primary-color);
 }
 
-.form-control:focus {
-  box-shadow: none;
-  border-color: #ced4da;
+.mb-1 {
+    margin-bottom: 0.25rem;
 }
 
-.form-control:focus + .input-group-text {
-  border-color: #ced4da;
+.mb-2 {
+    margin-bottom: 0.5rem;
 }
 
-.password-strength .progress {
-  height: 6px;
-  background-color: #e9ecef;
+.mb-4 {
+    margin-bottom: 1rem;
 }
 
-.password-strength .progress-bar {
-  transition: width 0.3s ease, background-color 0.3s ease;
+.mb-8 {
+    margin-bottom: 2rem;
 }
 
-.g-recaptcha {
-  transform: scale(0.9);
-  transform-origin: 0 0;
-  margin: 0 auto;
+.py-2 {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
 }
 
-@media (max-width: 400px) {
-  .g-recaptcha {
-    transform: scale(0.8);
-  }
+.py-4 {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
 }
 
-/* Tailwind-like utilities that might be missing */
-.shadow-sm {
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+.py-8 {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
 }
 
-.rounded-lg {
-  border-radius: 0.5rem;
+.px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
 }
 
-/* Highlight effect for form inputs */
-.form-control:focus, 
-.form-check-input:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+.rounded {
+    border-radius: var(--border-radius);
 }
 
-/* Custom checkbox style */
-.form-check-input:checked {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
+.shadow {
+    box-shadow: var(--box-shadow);
 }
 
-/* Button states */
-.btn-primary {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
+/* Media Queries for Responsive Design */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2rem;
+    }
+    
+    h2 {
+        font-size: 1.75rem;
+    }
+    
+    .hidden-mobile {
+        display: none;
+    }
 }
 
-.btn-primary:hover,
-.btn-primary:focus,
-.btn-primary:active {
-  background-color: var(--primary-dark);
-  border-color: var(--primary-dark);
+/* Custom animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-/* Animated link transitions */
-a.text-primary {
-  transition: color 0.3s ease;
+.fade-in {
+    animation: fadeIn 0.8s ease forwards;
 }
 
-a.text-primary:hover {
-  color: var(--primary-dark) !important;
-  text-decoration: underline;
+/* Custom form styling */
+.form-input-icon {
+    position: relative;
 }
 
-/* Enhanced form responsiveness */
-@media (max-width: 576px) {
-  .card-body {
-    padding: 1.5rem;
-  }
-  
-  h2.fw-bold {
-    font-size: 1.75rem;
-  }
-  
-  .btn-lg {
-    padding: 0.5rem 1rem;
-    font-size: 1rem;
-  }
+.form-input-icon i {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+    color: var(--primary-color);
 }
 
-/* Form validation styling */
-.was-validated .form-control:valid {
-  border-color: var(--success-color);
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%231cc88a' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right calc(0.375em + 0.1875rem) center;
-  background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+.form-input-icon input {
+    padding-left: 35px;
 }
 
-.was-validated .form-control:invalid {
-  border-color: var(--danger-color);
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23e74a3b'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23e74a3b' stroke='none'/%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right calc(0.375em + 0.1875rem) center;
-  background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+/* Custom button styles */
+.btn-gradient {
+    background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    color: white;
+    transition: all 0.3s ease;
 }
 
-.was-validated .form-check-input:valid {
-  border-color: var(--success-color);
+.btn-gradient:hover {
+    background: linear-gradient(to right, var(--primary-dark), var(--secondary-color));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.was-validated .form-check-input:valid:checked {
-  background-color: var(--success-color);
+/* Social media icons */
+.social-icons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
 }
 
-.was-validated .form-check-input:invalid {
-  border-color: var(--danger-color);
+.social-icons a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #f3f4f6;
+    color: #6B7280;
+    transition: all 0.3s ease;
 }
 
-/* Alert styling */
-.alert {
-  border: none;
-  border-radius: 0.5rem;
+.social-icons a:hover {
+    background-color: var(--primary-color);
+    color: white;
+    transform: translateY(-3px);
 }
 
-.alert-success {
-  color: #0f5132;
-  background-color: #d1e7dd;
+/* Card hover effect */
+.hover-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.alert-danger {
-  color: #842029;
-  background-color: #f8d7da;
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
 }
 
-/* Focused button styling */
-.btn:focus {
-  box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+/* Input focus effect */
+.input-focus-effect {
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.input-focus-effect:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
