@@ -194,9 +194,9 @@ img {
     position: relative;
 }
 
-.form-input-icon i {
+.form-input-icon i.input-icon {
     position: absolute;
-    top: 50%;
+    top: 38px;
     left: 10px;
     transform: translateY(-50%);
     color: var(--primary-color);
@@ -204,6 +204,79 @@ img {
 
 .form-input-icon input {
     padding-left: 35px;
+}
+
+/* Password toggle visibility */
+.password-toggle {
+    position: absolute;
+    top: 38px;
+    right: 10px;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: var(--text-light);
+    z-index: 10;
+}
+
+.password-toggle:hover {
+    color: var(--primary-color);
+}
+
+/* Password strength meter */
+.password-strength-meter {
+    height: 5px;
+    width: 100%;
+    background-color: #e5e7eb;
+    margin-top: 5px;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.password-strength-meter .strength-segment {
+    height: 100%;
+    width: 0;
+    transition: width 0.3s ease;
+}
+
+.strength-weak {
+    background-color: var(--error-color);
+    width: 25%;
+}
+
+.strength-fair {
+    background-color: var(--warning-color);
+    width: 50%;
+}
+
+.strength-good {
+    background-color: #60a5fa;
+    width: 75%;
+}
+
+.strength-strong {
+    background-color: var(--success-color);
+    width: 100%;
+}
+
+.strength-text {
+    display: block;
+    font-size: 0.75rem;
+    margin-top: 4px;
+}
+
+.text-weak {
+    color: var(--error-color);
+}
+
+.text-fair {
+    color: var(--warning-color);
+}
+
+.text-good {
+    color: #3b82f6;
+}
+
+.text-strong {
+    color: var(--success-color);
 }
 
 /* Custom button styles */

@@ -68,11 +68,46 @@
                         <a href="/contact" class="text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-600 hover:bg-opacity-50 transition duration-300">Contact</a>
                     </div>
                 </div>
+                
+                <?php
+                // Check if user is logged in
+                if (session_status() === PHP_SESSION_NONE) {
+                    session_start();
+                }
+                
+                if (isset($_SESSION['user_id'])): 
+                ?>
+                <!-- User profile dropdown for logged in users -->
+                <div class="hidden md:flex items-center space-x-4">
+                    <div class="relative">
+                        <button type="button" class="flex items-center max-w-xs text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-white" id="user-menu-button" aria-expanded="false" aria-haspopup="true" onclick="document.getElementById('user-dropdown').classList.toggle('hidden')">
+                            <span class="sr-only">Open user menu</span>
+                            <div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
+                                <?php echo strtoupper(substr($_SESSION['username'], 0, 1)); ?>
+                            </div>
+                            <span class="ml-2 text-white"><?php echo htmlspecialchars($_SESSION['username']); ?></span>
+                            <svg class="ml-1 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        
+                        <!-- Dropdown menu -->
+                        <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
+                            <a href="/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Dashboard</a>
+                            <a href="/settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Settings</a>
+                            <div class="border-t border-gray-100"></div>
+                            <a href="/logout" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Logout</a>
+                        </div>
+                    </div>
+                </div>
+                <?php else: ?>
                 <!-- Login/Register buttons for desktop -->
                 <div class="hidden md:flex items-center space-x-4">
                     <a href="/login" class="text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-600 hover:bg-opacity-50 transition duration-300 border border-white">Login</a>
                     <a href="/register" class="text-indigo-900 bg-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-100 transition duration-300 shadow-md">Register</a>
                 </div>
+                <?php endif; ?>
+                
                 <div class="md:hidden">
                     <!-- Mobile menu button -->
                     <button type="button" class="text-white hover:text-blue-200 focus:outline-none focus:text-blue-200" aria-label="Open menu" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
@@ -90,10 +125,25 @@
                 <a href="/challenges" class="block text-white px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700 transition duration-300">Challenges</a>
                 <a href="/about" class="block text-white px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700 transition duration-300">About</a>
                 <a href="/contact" class="block text-white px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700 transition duration-300">Contact</a>
+                
+                <?php if (isset($_SESSION['user_id'])): ?>
+                <!-- User profile for mobile when logged in -->
+                <div class="flex items-center px-3 py-2">
+                    <div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
+                        <?php echo strtoupper(substr($_SESSION['username'], 0, 1)); ?>
+                    </div>
+                    <span class="ml-2 text-white"><?php echo htmlspecialchars($_SESSION['username']); ?></span>
+                </div>
+                <a href="/dashboard" class="block text-white px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700 transition duration-300">Dashboard</a>
+                <a href="/settings" class="block text-white px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700 transition duration-300">Settings</a>
+                <a href="/logout" class="block text-white px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700 transition duration-300">Logout</a>
+                <?php else: ?>
+                <!-- Login/Register for mobile -->
                 <div class="flex space-x-2 mt-3 pb-1">
                     <a href="/login" class="flex-1 text-center text-white px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700 transition duration-300 border border-white">Login</a>
                     <a href="/register" class="flex-1 text-center text-indigo-900 bg-white px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100 transition duration-300">Register</a>
                 </div>
+                <?php endif; ?>
             </div>
         </div>
     </nav>

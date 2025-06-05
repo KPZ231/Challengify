@@ -49,8 +49,8 @@
                         <label for="username" class="block text-sm font-medium text-gray-700">
                             <i class="fas fa-user text-indigo-500 mr-2"></i>Username
                         </label>
-                        <input type="text" id="username" name="username" 
-                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 input-focus-effect <?= isset($errors['username']) ? 'border-red-500' : '' ?>"
+                        <input type="text" id="username" name="username" placeholder="Enter your username"
+                            class="mt-1 block w-full px-3 py-2 pl-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 input-focus-effect <?= isset($errors['username']) ? 'border-red-500' : '' ?>"
                             value="<?= htmlspecialchars($old['username'] ?? '') ?>" required>
                         <?php if (isset($errors['username'])): ?>
                             <p class="mt-1 text-sm text-red-600"><?= htmlspecialchars($errors['username']) ?></p>
@@ -62,8 +62,9 @@
                         <label for="email" class="block text-sm font-medium text-gray-700">
                             <i class="fas fa-envelope text-indigo-500 mr-2"></i>Email address
                         </label>
-                        <input type="email" id="email" name="email"
-                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 input-focus-effect <?= isset($errors['email']) ? 'border-red-500' : '' ?>"
+                      
+                        <input type="email" id="email" name="email" placeholder="Enter your email address"
+                            class="mt-1 block w-full px-3 py-2 pl-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 input-focus-effect <?= isset($errors['email']) ? 'border-red-500' : '' ?>"
                             value="<?= htmlspecialchars($old['email'] ?? '') ?>" required>
                         <?php if (isset($errors['email'])): ?>
                             <p class="mt-1 text-sm text-red-600"><?= htmlspecialchars($errors['email']) ?></p>
@@ -75,12 +76,19 @@
                         <label for="password" class="block text-sm font-medium text-gray-700">
                             <i class="fas fa-lock text-indigo-500 mr-2"></i>Password
                         </label>
-                        <input type="password" id="password" name="password"
-                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 input-focus-effect <?= isset($errors['password']) ? 'border-red-500' : '' ?>"
+                        
+                        <i class="fas fa-eye password-toggle" id="password-toggle"></i>
+                        <input type="password" id="password" name="password" placeholder="Enter your password"
+                            class="mt-1 block w-full px-3 py-2 pl-10 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 input-focus-effect <?= isset($errors['password']) ? 'border-red-500' : '' ?>"
                             required>
                         <?php if (isset($errors['password'])): ?>
                             <p class="mt-1 text-sm text-red-600"><?= htmlspecialchars($errors['password']) ?></p>
                         <?php endif; ?>
+                        
+                        <div class="password-strength-meter mt-2">
+                            <div class="strength-segment" id="password-strength-meter"></div>
+                        </div>
+                        <span class="strength-text" id="password-strength-text"></span>
                         <p class="mt-1 text-xs text-gray-500">Password must be at least 8 characters.</p>
                     </div>
 
@@ -88,8 +96,10 @@
                         <label for="password_confirm" class="block text-sm font-medium text-gray-700">
                             <i class="fas fa-check-circle text-indigo-500 mr-2"></i>Confirm Password
                         </label>
-                        <input type="password" id="password_confirm" name="password_confirm"
-                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 input-focus-effect <?= isset($errors['password_confirm']) ? 'border-red-500' : '' ?>"
+                       
+                        <i class="fas fa-eye password-toggle" id="confirm-password-toggle"></i>
+                        <input type="password" id="password_confirm" name="password_confirm" placeholder="Confirm your password"
+                            class="mt-1 block w-full px-3 py-2 pl-10 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 input-focus-effect <?= isset($errors['password_confirm']) ? 'border-red-500' : '' ?>"
                             required>
                         <?php if (isset($errors['password_confirm'])): ?>
                             <p class="mt-1 text-sm text-red-600"><?= htmlspecialchars($errors['password_confirm']) ?></p>
@@ -139,6 +149,105 @@
         AOS.init({
             once: true,
             duration: 800
+        });
+        
+        // Password visibility toggle
+        document.getElementById('password-toggle').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const icon = this;
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+        
+        document.getElementById('confirm-password-toggle').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password_confirm');
+            const icon = this;
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+        
+        // Password strength meter
+        document.getElementById('password').addEventListener('input', function() {
+            const password = this.value;
+            const meter = document.getElementById('password-strength-meter');
+            const text = document.getElementById('password-strength-text');
+            
+            // Remove all classes
+            meter.className = 'strength-segment';
+            text.className = 'strength-text';
+            
+            // Check password strength
+            if (password.length === 0) {
+                meter.classList.add('');
+                text.textContent = '';
+                return;
+            } else if (password.length < 8) {
+                meter.classList.add('strength-weak');
+                text.classList.add('text-weak');
+                text.textContent = 'Weak';
+                return;
+            }
+            
+            let strength = 0;
+            
+            // If password contains both lower and uppercase characters
+            if (password.match(/[a-z]/) && password.match(/[A-Z]/)) {
+                strength += 1;
+            }
+            
+            // If password has numbers
+            if (password.match(/\d/)) {
+                strength += 1;
+            }
+            
+            // If password has special characters
+            if (password.match(/[^a-zA-Z0-9]/)) {
+                strength += 1;
+            }
+            
+            // If password is longer than 12 characters
+            if (password.length > 12) {
+                strength += 1;
+            }
+            
+            // Determine the strength text and class
+            switch (strength) {
+                case 0:
+                    meter.classList.add('strength-weak');
+                    text.classList.add('text-weak');
+                    text.textContent = 'Weak';
+                    break;
+                case 1:
+                    meter.classList.add('strength-fair');
+                    text.classList.add('text-fair');
+                    text.textContent = 'Fair';
+                    break;
+                case 2:
+                    meter.classList.add('strength-good');
+                    text.classList.add('text-good');
+                    text.textContent = 'Good';
+                    break;
+                default:
+                    meter.classList.add('strength-strong');
+                    text.classList.add('text-strong');
+                    text.textContent = 'Strong';
+            }
         });
     </script>
     <script src="/assets/javascript/validation.js"></script>

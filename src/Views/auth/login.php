@@ -49,8 +49,9 @@
                         <label for="email" class="block text-sm font-medium text-gray-700">
                             <i class="fas fa-envelope text-indigo-500 mr-2"></i>Email address
                         </label>
+                        
                         <input type="email" id="email" name="email"
-                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 input-focus-effect <?= isset($errors['email']) ? 'border-red-500' : '' ?>"
+                            class="mt-1 block w-full px-3 py-2 pl-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 input-focus-effect <?= isset($errors['email']) ? 'border-red-500' : '' ?>"
                             value="<?= htmlspecialchars($old['email'] ?? '') ?>" required>
                         <?php if (isset($errors['email'])): ?>
                             <p class="mt-1 text-sm text-red-600"><?= htmlspecialchars($errors['email']) ?></p>
@@ -61,8 +62,10 @@
                         <label for="password" class="block text-sm font-medium text-gray-700">
                             <i class="fas fa-lock text-indigo-500 mr-2"></i>Password
                         </label>
+              
+                        <i class="fas fa-eye password-toggle" id="password-toggle"></i>
                         <input type="password" id="password" name="password"
-                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 input-focus-effect <?= isset($errors['password']) ? 'border-red-500' : '' ?>"
+                            class="mt-1 block w-full px-3 py-2 pl-10 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 input-focus-effect <?= isset($errors['password']) ? 'border-red-500' : '' ?>"
                             required>
                         <?php if (isset($errors['password'])): ?>
                             <p class="mt-1 text-sm text-red-600"><?= htmlspecialchars($errors['password']) ?></p>
@@ -114,6 +117,22 @@
         AOS.init({
             once: true,
             duration: 800
+        });
+        
+        // Password visibility toggle
+        document.getElementById('password-toggle').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const icon = this;
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
         });
     </script>
     <script src="/assets/javascript/validation.js"></script>

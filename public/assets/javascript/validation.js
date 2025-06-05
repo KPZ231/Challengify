@@ -1,173 +1,152 @@
 /**
- * Form validation for the registration and login forms
+ * Challengify Form Validation
+ * 
+ * Handles client-side validation for login and registration forms
  */
-document.addEventListener('DOMContentLoaded', function() {
-    // Get forms
-    const registerForm = document.getElementById('register-form');
-    const loginForm = document.getElementById('login-form');
 
-    // Validation for registration form
-    if (registerForm) {
-        registerForm.addEventListener('submit', function(e) {
-            let valid = true;
-            const errors = {};
-            
-            // Get form fields
-            const username = document.getElementById('username');
-            const email = document.getElementById('email');
-            const password = document.getElementById('password');
-            const passwordConfirm = document.getElementById('password_confirm');
-            
-            // Clear previous error messages
-            clearErrors();
-            
-            // Validate username
-            if (!username.value.trim()) {
-                errors.username = 'Username is required';
-                valid = false;
-            } else if (username.value.length < 3 || username.value.length > 50) {
-                errors.username = 'Username must be between 3 and 50 characters';
-                valid = false;
-            } else if (!/^[a-zA-Z0-9_-]+$/.test(username.value)) {
-                errors.username = 'Username may only contain letters, numbers, dashes and underscores';
-                valid = false;
-            }
-            
-            // Validate email
-            if (!email.value.trim()) {
-                errors.email = 'Email is required';
-                valid = false;
-            } else if (!isValidEmail(email.value)) {
-                errors.email = 'Please enter a valid email address';
-                valid = false;
-            }
-            
-            // Validate password
-            if (!password.value) {
-                errors.password = 'Password is required';
-                valid = false;
-            } else if (password.value.length < 8) {
-                errors.password = 'Password must be at least 8 characters';
-                valid = false;
-            }
-            
-            // Validate password confirmation
-            if (password.value !== passwordConfirm.value) {
-                errors.password_confirm = 'Passwords do not match';
-                valid = false;
-            }
-            
-            // Display errors and prevent form submission if invalid
-            if (!valid) {
-                e.preventDefault();
-                displayErrors(errors);
-            }
-        });
-    }
-    
-    // Validation for login form
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation for login form
+    const loginForm = document.getElementById('login-form');
     if (loginForm) {
         loginForm.addEventListener('submit', function(e) {
             let valid = true;
-            const errors = {};
             
-            // Get form fields
-            const email = document.getElementById('email');
-            const password = document.getElementById('password');
-            
-            // Clear previous error messages
-            clearErrors();
-            
-            // Validate email
-            if (!email.value.trim()) {
-                errors.email = 'Email is required';
+            // Email validation
+            const emailInput = document.getElementById('email');
+            if (emailInput && !validateEmail(emailInput.value)) {
+                showError(emailInput, 'Please enter a valid email address');
                 valid = false;
-            } else if (!isValidEmail(email.value)) {
-                errors.email = 'Please enter a valid email address';
-                valid = false;
+            } else {
+                clearError(emailInput);
             }
             
-            // Validate password
-            if (!password.value) {
-                errors.password = 'Password is required';
+            // Password validation
+            const passwordInput = document.getElementById('password');
+            if (passwordInput && passwordInput.value.length < 1) {
+                showError(passwordInput, 'Password is required');
                 valid = false;
+            } else {
+                clearError(passwordInput);
             }
             
-            // Display errors and prevent form submission if invalid
             if (!valid) {
                 e.preventDefault();
-                displayErrors(errors);
             }
         });
     }
     
-    // Helper function to validate email
-    function isValidEmail(email) {
-        const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return pattern.test(email);
-    }
-    
-    // Helper function to display errors
-    function displayErrors(errors) {
-        for (const field in errors) {
-            const errorElement = document.getElementById(`${field}-error`);
-            if (errorElement) {
-                errorElement.textContent = errors[field];
-                errorElement.style.display = 'block';
-                
-                // Add error class to input
-                const input = document.getElementById(field);
-                if (input) {
-                    input.classList.add('is-invalid');
+    // Form validation for register form
+    const registerForm = document.getElementById('register-form');
+    if (registerForm) {
+        registerForm.addEventListener('submit', function(e) {
+            let valid = true;
+            
+            // Username validation
+            const usernameInput = document.getElementById('username');
+            if (usernameInput) {
+                if (usernameInput.value.length < 3) {
+                    showError(usernameInput, 'Username must be at least 3 characters');
+                    valid = false;
+                } else if (usernameInput.value.length > 50) {
+                    showError(usernameInput, 'Username cannot exceed 50 characters');
+                    valid = false;
+                } else if (!validateUsername(usernameInput.value)) {
+                    showError(usernameInput, 'Username can only contain letters, numbers, dashes, and underscores');
+                    valid = false;
+                } else {
+                    clearError(usernameInput);
                 }
             }
-        }
-    }
-    
-    // Helper function to clear errors
-    function clearErrors() {
-        const errorElements = document.querySelectorAll('.error-message');
-        errorElements.forEach(element => {
-            element.textContent = '';
-            element.style.display = 'none';
-        });
-        
-        // Remove error class from inputs
-        const inputs = document.querySelectorAll('.form-control');
-        inputs.forEach(input => {
-            input.classList.remove('is-invalid');
-        });
-    }
-    
-    // Real-time validation for password strength
-    const passwordInput = document.getElementById('password');
-    if (passwordInput) {
-        passwordInput.addEventListener('input', function() {
-            const strength = document.getElementById('password-strength');
-            if (!strength) return;
             
-            const value = passwordInput.value;
-            let strengthText = '';
-            let strengthClass = '';
-            
-            if (value.length === 0) {
-                strengthText = '';
-            } else if (value.length < 6) {
-                strengthText = 'Weak';
-                strengthClass = 'text-danger';
-            } else if (value.length < 8) {
-                strengthText = 'Medium';
-                strengthClass = 'text-warning';
-            } else if (value.length < 12) {
-                strengthText = 'Strong';
-                strengthClass = 'text-success';
+            // Email validation
+            const emailInput = document.getElementById('email');
+            if (emailInput && !validateEmail(emailInput.value)) {
+                showError(emailInput, 'Please enter a valid email address');
+                valid = false;
             } else {
-                strengthText = 'Very Strong';
-                strengthClass = 'text-success';
+                clearError(emailInput);
             }
             
-            strength.textContent = strengthText;
-            strength.className = strengthClass;
+            // Password validation
+            const passwordInput = document.getElementById('password');
+            if (passwordInput) {
+                if (passwordInput.value.length < 8) {
+                    showError(passwordInput, 'Password must be at least 8 characters long');
+                    valid = false;
+                } else {
+                    clearError(passwordInput);
+                }
+            }
+            
+            // Password confirmation validation
+            const confirmInput = document.getElementById('password_confirm');
+            if (confirmInput && passwordInput) {
+                if (confirmInput.value !== passwordInput.value) {
+                    showError(confirmInput, 'Passwords do not match');
+                    valid = false;
+                } else {
+                    clearError(confirmInput);
+                }
+            }
+            
+            // Terms checkbox validation
+            const termsCheckbox = document.getElementById('terms');
+            if (termsCheckbox && !termsCheckbox.checked) {
+                showError(termsCheckbox, 'You must agree to the Terms of Service and Privacy Policy');
+                valid = false;
+            } else if (termsCheckbox) {
+                clearError(termsCheckbox);
+            }
+            
+            if (!valid) {
+                e.preventDefault();
+            }
         });
+    }
+    
+    // Utility functions
+    function validateEmail(email) {
+        const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(String(email).toLowerCase());
+    }
+    
+    function validateUsername(username) {
+        const re = /^[a-zA-Z0-9_-]+$/;
+        return re.test(username);
+    }
+    
+    function showError(element, message) {
+        // Find parent .form-input-icon div
+        const parentDiv = element.closest('.form-input-icon') || element.parentNode;
+        
+        // Check if error message element already exists
+        let errorElement = parentDiv.querySelector('.error-message');
+        
+        // If not, create a new one
+        if (!errorElement) {
+            errorElement = document.createElement('p');
+            errorElement.className = 'mt-1 text-sm text-red-600 error-message';
+            parentDiv.appendChild(errorElement);
+        }
+        
+        // Set the error message
+        errorElement.textContent = message;
+        
+        // Add error class to input
+        element.classList.add('border-red-500');
+    }
+    
+    function clearError(element) {
+        // Find parent .form-input-icon div
+        const parentDiv = element.closest('.form-input-icon') || element.parentNode;
+        
+        // Remove error message if it exists
+        const errorElement = parentDiv.querySelector('.error-message');
+        if (errorElement) {
+            errorElement.remove();
+        }
+        
+        // Remove error class from input
+        element.classList.remove('border-red-500');
     }
 }); 

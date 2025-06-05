@@ -32,6 +32,9 @@ $dispatcher = FastRoute\simpleDispatcher(function(RouteCollector $r) {
     $r->addRoute('GET', '/register', 'Controllers\\AuthController::register');
     $r->addRoute('POST', '/register', 'Controllers\\AuthController::processRegister');
     $r->addRoute('GET', '/logout', 'Controllers\\AuthController::logout');
+    
+    // User dashboard
+    $r->addRoute('GET', '/dashboard', 'Controllers\\UserDashboard::index');
 });
 
 // Parse the URL path
