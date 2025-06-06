@@ -35,6 +35,10 @@ $dispatcher = FastRoute\simpleDispatcher(function(RouteCollector $r) {
     
     // User dashboard
     $r->addRoute('GET', '/dashboard', 'Controllers\\UserDashboard::index');
+    
+    // User settings
+    $r->addRoute('GET', '/settings', 'Controllers\\UserDashboard::settings');
+    $r->addRoute('POST', '/update-settings', 'Controllers\\UserDashboard::updateSettings');
 });
 
 // Parse the URL path
@@ -46,7 +50,7 @@ $routeInfo = $dispatcher->dispatch(
 // Handle the route
 switch ($routeInfo[0]) {
     case FastRoute\Dispatcher::NOT_FOUND:
-        $response = new Response('404 Not Found', 404);
+        $response = new Response('', 404);
         require_once __DIR__ . '/../src/Views/notfound.html';
         break;
         
