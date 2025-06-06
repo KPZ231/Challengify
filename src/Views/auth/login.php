@@ -45,6 +45,7 @@
                 <?php endif; ?>
 
                 <form id="login-form" action="/login" method="post" class="space-y-6">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token ?? '') ?>">
                     <div class="form-input-icon">
                         <label for="email" class="block text-sm font-medium text-gray-700">
                             <i class="fas fa-envelope text-indigo-500 mr-2"></i>Email address

@@ -1,0 +1,20 @@
+[2025-06-06 22:08:21] [INFO] Starting settings update for user {"user_id":4}
+[2025-06-06 22:08:21] [INFO] Bio updated {"user_id":4}
+[2025-06-06 22:08:21] [INFO] Profile image upload started {"file_name":"Chellengify.png","file_size":41108,"mime_type":"image\/png"}
+[2025-06-06 22:08:21] [ERROR] Exception during file upload {"exception":"SplFileInfo::getSize(): stat failed for C:\\Users\\Administrator\\AppData\\Local\\Temp\\phpD3EE.tmp","file":"Chellengify.png","destination":"C:\\Users\\Administrator\\Documents\\Challengify\\src\\Controllers\/..\/..\/public\/assets\/images\/profiles\/profile_4_1749247701.png"}
+[2025-06-06 22:08:21] [ERROR] Profile image upload failed {"user_id":4,"errors":["Exception during file upload: SplFileInfo::getSize(): stat failed for C:\\Users\\Administrator\\AppData\\Local\\Temp\\phpD3EE.tmp"]}
+[2025-06-06 22:08:21] [INFO] Updated user settings {"user_id":4}
+[2025-06-06 22:08:21] [WARNING] Settings update completed with errors {"user_id":4,"errors":{"profile_image":"Exception during file upload: SplFileInfo::getSize(): stat failed for C:\\Users\\Administrator\\AppData\\Local\\Temp\\phpD3EE.tmp"}}
+[2025-06-06 22:10:05] [INFO] Starting settings update for user {"user_id":4}
+[2025-06-06 22:10:05] [INFO] Bio updated {"user_id":4}
+[2025-06-06 22:10:05] [INFO] Profile image upload started {"file_name":"Chellengify.png","file_size":41108,"mime_type":"image\/png"}
+[2025-06-06 22:10:05] [INFO] Upload directory info {"upload_dir":"C:\\Users\\Administrator\\Documents\\Challengify\\public\\assets\\images\\profiles\\","upload_dir_exists":"yes","upload_dir_writable":"yes"}
+[2025-06-06 22:10:05] [INFO] File uploaded successfully {"original_name":"Chellengify.png","new_name":"profile_4_1749247805.png","path":"C:\\Users\\Administrator\\Documents\\Challengify\\public\\assets\\images\\profiles\\\/profile_4_1749247805.png","size":41108}
+[2025-06-06 22:10:05] [INFO] Profile image updated successfully {"user_id":4,"file_path":"\/assets\/images\/profiles\/profile_4_1749247805.png"}
+[2025-06-06 22:10:05] [INFO] Updated user settings {"user_id":4}
+[2025-06-06 22:10:05] [INFO] Settings update completed successfully {"user_id":4}
+[2025-06-06 22:12:13] [INFO] Starting settings update for user {"user_id":4}
+[2025-06-06 22:12:13] [INFO] Bio updated {"user_id":4}
+[2025-06-06 22:12:13] [WARNING] Empty or invalid profile image file uploaded {"file":"null","size":0}
+[2025-06-06 22:12:13] [INFO] Updated user settings {"user_id":4}
+[2025-06-06 22:12:13] [INFO] Settings update completed successfully {"user_id":4}

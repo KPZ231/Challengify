@@ -4,6 +4,9 @@ namespace Kpzsproductions\Challengify\Controllers;
 
 use Kpzsproductions\Challengify\Core\Controller;
 use Kpzsproductions\Challengify\Core\Database;
+use Kpzsproductions\Challengify\Core\Session;
+use Kpzsproductions\Challengify\Core\Security;
+use Kpzsproductions\Challengify\Core\Logger;
 use Kpzsproductions\Challengify\Components\Notification;
 use Respect\Validation\Validator as v;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,7 +24,12 @@ class AuthController extends Controller
             return $this->redirect('/');
         }
         
-        return $this->render('auth/login');
+        // Generate CSRF token for the form
+        $csrfToken = Session::generateCsrfToken();
+        
+        return $this->render('auth/login', [
+            'csrf_token' => $csrfToken
+        ]);
     }
     
     /**
@@ -32,6 +40,20 @@ class AuthController extends Controller
         $email = $request->request->get('email');
         $password = $request->request->get('password');
         $remember = $request->request->getBoolean('remember', false);
+        $csrfToken = $request->request->get('csrf_token');
+        $ipAddress = $request->getClientIp();
+        
+        // Validate CSRF token
+        if (!Session::validateCsrfToken($csrfToken)) {
+            Notification::show('Invalid form submission. Please try again.', 'error');
+            return $this->redirect('/login');
+        }
+        
+        // Check for rate limiting
+        if (!Security::checkRateLimit("login_attempt:{$ipAddress}", 5, 15)) {
+            Notification::show('Too many login attempts. Please try again later.', 'error');
+            return $this->redirect('/login');
+        }
         
         // Validate input
         $errors = [];
@@ -48,7 +70,8 @@ class AuthController extends Controller
             Notification::show('Please correct the form errors', 'error');
             return $this->render('auth/login', [
                 'errors' => $errors,
-                'old' => ['email' => $email]
+                'old' => ['email' => $email],
+                'csrf_token' => Session::generateCsrfToken()
             ]);
         }
         
@@ -58,10 +81,18 @@ class AuthController extends Controller
         
         // Check if user exists and password matches
         if (!$user || !password_verify($password, $user['password_hash'])) {
+            // Log failed login attempt
+            Logger::info("Failed login attempt", [
+                'email' => $email,
+                'ip' => $ipAddress,
+                'user_agent' => $request->headers->get('User-Agent')
+            ]);
+            
             Notification::show('Invalid email or password', 'error');
             return $this->render('auth/login', [
                 'error' => 'Invalid email or password',
-                'old' => ['email' => $email]
+                'old' => ['email' => $email],
+                'csrf_token' => Session::generateCsrfToken()
             ]);
         }
         
@@ -70,33 +101,59 @@ class AuthController extends Controller
             Notification::show('Your account has been deactivated', 'error');
             return $this->render('auth/login', [
                 'error' => 'Your account has been deactivated',
-                'old' => ['email' => $email]
+                'old' => ['email' => $email],
+                'csrf_token' => Session::generateCsrfToken()
             ]);
         }
         
-        // Start session and set user data
-        session_start();
-        $_SESSION['user_id'] = $user['user_id'];
-        $_SESSION['username'] = $user['username'];
-        $_SESSION['role'] = $user['role'];
+        // Start secure session and set user data
+        Session::start();
+        Session::regenerateId(); // Prevent session fixation
+        
+        // Set session variables
+        Session::set('user_id', $user['user_id']);
+        Session::set('username', $user['username']);
+        Session::set('role', $user['role']);
+        Session::set('profile_image', $user['profile_image']);
+        Session::set('last_active', time());
         
         // Create remember me token if requested
         if ($remember) {
-            $token = bin2hex(random_bytes(32));
+            $token = Security::generateToken(32);
             $expires = date('Y-m-d H:i:s', strtotime('+30 days'));
             
             $db->insert('user_tokens', [
                 'user_id' => $user['user_id'],
                 'token' => $token,
-                'expires_at' => $expires
+                'expires_at' => $expires,
+                'ip_address' => $ipAddress,
+                'user_agent' => substr($request->headers->get('User-Agent'), 0, 255)
             ]);
             
-            // Set cookie
-            setcookie('remember_token', $token, strtotime('+30 days'), '/', '', true, true);
+            // Set secure cookie
+            setcookie(
+                'remember_token', 
+                $token, 
+                [
+                    'expires' => strtotime('+30 days'),
+                    'path' => '/',
+                    'domain' => '',
+                    'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+                    'httponly' => true,
+                    'samesite' => 'Lax'
+                ]
+            );
         }
         
+        // Log successful login
+        Logger::info("Successful login", [
+            'user_id' => $user['user_id'],
+            'username' => $user['username'],
+            'ip' => $ipAddress
+        ]);
+        
         // Show success notification
-        Notification::show('Successfully logged in! Welcome back ' . $user['username'], 'success');
+        Notification::show('Successfully logged in! Welcome back ' . htmlspecialchars($user['username']), 'success');
         
         // Redirect to home page
         return $this->redirect('/');
@@ -112,7 +169,12 @@ class AuthController extends Controller
             return $this->redirect('/');
         }
         
-        return $this->render('auth/register');
+        // Generate CSRF token for the form
+        $csrfToken = Session::generateCsrfToken();
+        
+        return $this->render('auth/register', [
+            'csrf_token' => $csrfToken
+        ]);
     }
     
     /**
@@ -124,6 +186,24 @@ class AuthController extends Controller
         $email = $request->request->get('email');
         $password = $request->request->get('password');
         $passwordConfirm = $request->request->get('password_confirm');
+        $csrfToken = $request->request->get('csrf_token');
+        
+        // Validate CSRF token
+        if (!Session::validateCsrfToken($csrfToken)) {
+            Notification::show('Invalid form submission. Please try again.', 'error');
+            return $this->redirect('/register');
+        }
+        
+        // Check for rate limiting
+        $ipAddress = $request->getClientIp();
+        if (!Security::checkRateLimit("registration_attempt:{$ipAddress}", 3, 30)) {
+            Notification::show('Too many registration attempts. Please try again later.', 'error');
+            return $this->redirect('/register');
+        }
+        
+        // Sanitize inputs
+        $username = Security::sanitizeString($username);
+        $email = Security::sanitizeEmail($email);
         
         // Validate input
         $errors = [];
@@ -132,12 +212,17 @@ class AuthController extends Controller
             $errors['username'] = 'Username must be 3-50 characters and may contain alphanumeric characters, dashes and underscores';
         }
         
-        if (!v::email()->validate($email)) {
+        if (!Security::validateEmail($email)) {
             $errors['email'] = 'Please enter a valid email address';
         }
         
+        // Enhanced password requirements
         if (!v::notEmpty()->length(8, null)->validate($password)) {
             $errors['password'] = 'Password must be at least 8 characters';
+        } elseif (!preg_match('/[A-Z]/', $password) || 
+                  !preg_match('/[a-z]/', $password) || 
+                  !preg_match('/[0-9]/', $password)) {
+            $errors['password'] = 'Password must include at least one uppercase letter, one lowercase letter, and one number';
         }
         
         if ($password !== $passwordConfirm) {
@@ -152,7 +237,8 @@ class AuthController extends Controller
                 'old' => [
                     'username' => $username,
                     'email' => $email
-                ]
+                ],
+                'csrf_token' => Session::generateCsrfToken()
             ]);
         }
         
@@ -184,12 +270,17 @@ class AuthController extends Controller
                 'old' => [
                     'username' => $username,
                     'email' => $email
-                ]
+                ],
+                'csrf_token' => Session::generateCsrfToken()
             ]);
         }
         
-        // Hash password
-        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+        // Hash password with stronger algorithm and options
+        $passwordHash = password_hash($password, PASSWORD_ARGON2ID, [
+            'memory_cost' => 65536, // 64MB
+            'time_cost' => 4,
+            'threads' => 3,
+        ]);
         
         // Insert new user
         $db->insert('users', [
@@ -198,7 +289,15 @@ class AuthController extends Controller
             'password_hash' => $passwordHash,
             'created_at' => date('Y-m-d H:i:s'),
             'is_active' => true,
-            'role' => 'user'
+            'role' => 'user',
+            'registration_ip' => $ipAddress
+        ]);
+        
+        // Log registration
+        Logger::info("New user registered", [
+            'username' => $username,
+            'email' => $email,
+            'ip' => $ipAddress
         ]);
         
         // Display success notification
@@ -213,19 +312,28 @@ class AuthController extends Controller
      */
     public function logout()
     {
-        // Start session
-        session_start();
-        
         // Remove remember token if exists
         if (isset($_COOKIE['remember_token'])) {
             $db = Database::getInstance();
             $db->delete('user_tokens', ['token' => $_COOKIE['remember_token']]);
-            setcookie('remember_token', '', time() - 3600, '/', '', true, true);
+            
+            // Securely clear the cookie
+            setcookie(
+                'remember_token', 
+                '', 
+                [
+                    'expires' => time() - 3600,
+                    'path' => '/',
+                    'domain' => '',
+                    'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+                    'httponly' => true,
+                    'samesite' => 'Lax'
+                ]
+            );
         }
         
         // Destroy session
-        session_unset();
-        session_destroy();
+        Session::destroy();
         
         // Show logout notification
         Notification::show('Successfully logged out', 'info');
@@ -240,11 +348,9 @@ class AuthController extends Controller
     private function isLoggedIn()
     {
         // Check session
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        
-        if (isset($_SESSION['user_id'])) {
+        if (Session::has('user_id')) {
+            // Update last activity time
+            Session::set('last_active', time());
             return true;
         }
         
@@ -261,21 +367,33 @@ class AuthController extends Controller
                 $user = $db->get('users', '*', ['user_id' => $token['user_id']]);
                 
                 if ($user && $user['is_active']) {
-                    // Start session and set user data
-                    if (session_status() === PHP_SESSION_NONE) {
-                        session_start();
-                    }
+                    // Set session data
+                    Session::start();
+                    Session::regenerateId(); // Prevent session fixation
                     
-                    $_SESSION['user_id'] = $user['user_id'];
-                    $_SESSION['username'] = $user['username'];
-                    $_SESSION['role'] = $user['role'];
+                    Session::set('user_id', $user['user_id']);
+                    Session::set('username', $user['username']);
+                    Session::set('role', $user['role']);
+                    Session::set('profile_image', $user['profile_image']);
+                    Session::set('last_active', time());
                     
                     return true;
                 }
             }
             
             // Remove invalid token
-            setcookie('remember_token', '', time() - 3600, '/', '', true, true);
+            setcookie(
+                'remember_token', 
+                '', 
+                [
+                    'expires' => time() - 3600,
+                    'path' => '/',
+                    'domain' => '',
+                    'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+                    'httponly' => true,
+                    'samesite' => 'Lax'
+                ]
+            );
         }
         
         return false;

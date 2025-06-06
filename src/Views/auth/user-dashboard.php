@@ -8,6 +8,9 @@
     <link href="/assets/css/vendor/tailwind.min.css" rel="stylesheet">
     <link href="/assets/css/style.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+       <!-- Font Awesome -->
+       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-gray-50">
     <!-- Navbar -->
@@ -34,8 +37,8 @@
                         <div class="relative">
                             <button type="button" class="flex items-center max-w-xs text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-white" id="user-menu-button" aria-expanded="false" aria-haspopup="true" onclick="document.getElementById('user-dropdown').classList.toggle('hidden')">
                                 <span class="sr-only">Open user menu</span>
-                                <?php if (!empty($user['profile_image'])): ?>
-                                    <img class="h-8 w-8 rounded-full" src="<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Profile">
+                                <?php if (!empty($_SESSION['profile_image'])): ?>
+                                    <img class="h-8 w-8 rounded-full" src="<?php echo htmlspecialchars($_SESSION['profile_image']); ?>" alt="Profile">
                                 <?php else: ?>
                                     <div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
                                         <?php echo strtoupper(substr($_SESSION['username'], 0, 1)); ?>
@@ -76,8 +79,8 @@
                 <a href="/challenges" class="block text-white px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700 transition duration-300">Challenges</a>
                 <a href="/dashboard" class="block bg-blue-600 bg-opacity-50 text-white px-3 py-2 rounded-md text-base font-medium">Dashboard</a>
                 <div class="flex items-center px-3 py-2">
-                    <?php if (!empty($user['profile_image'])): ?>
-                        <img class="h-8 w-8 rounded-full" src="<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Profile">
+                    <?php if (!empty($_SESSION['profile_image'])): ?>
+                        <img class="h-8 w-8 rounded-full" src="<?php echo htmlspecialchars($_SESSION['profile_image']); ?>" alt="Profile">
                     <?php else: ?>
                         <div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
                             <?php echo strtoupper(substr($_SESSION['username'], 0, 1)); ?>
@@ -98,8 +101,8 @@
                 <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
                     <h2 class="text-xl font-semibold text-gray-800 mb-4">Profile</h2>
                     <div class="text-center mb-6">
-                        <?php if (!empty($user['profile_image'])): ?>
-                            <img class="h-24 w-24 rounded-full mx-auto mb-3" src="<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Profile">
+                        <?php if (!empty($_SESSION['profile_image'])): ?>
+                            <img class="h-24 w-24 rounded-full mx-auto mb-3" src="<?php echo htmlspecialchars($_SESSION['profile_image']); ?>" alt="Profile">
                         <?php else: ?>
                             <div class="h-24 w-24 rounded-full bg-blue-600 flex items-center justify-center text-white text-4xl mx-auto mb-3">
                                 <?php echo strtoupper(substr($_SESSION['username'], 0, 1)); ?>

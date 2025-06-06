@@ -4,6 +4,8 @@ namespace Kpzsproductions\Challengify\Controllers;
 
 use Kpzsproductions\Challengify\Core\Controller;
 use Kpzsproductions\Challengify\Core\Database;
+use Kpzsproductions\Challengify\Core\Logger;
+use Kpzsproductions\Challengify\Core\FileUploader;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Respect\Validation\Validator as v;
@@ -132,6 +134,9 @@ class UserDashboard extends Controller {
      * Process user settings form
      */
     public function updateSettings(Request $request) {
+        // Initialize logger for better tracking
+        Logger::init(__DIR__ . '/../../logs/profile_updates.log');
+        
         // Check if user is logged in
         if (!$this->isLoggedIn()) {
             // Redirect to login page
@@ -140,6 +145,8 @@ class UserDashboard extends Controller {
         
         $db = Database::getInstance();
         $userId = $_SESSION['user_id'];
+        
+        Logger::info("Starting settings update for user", ['user_id' => $userId]);
         
         // Get form data
         $username = $request->request->get('username');
@@ -167,15 +174,18 @@ class UserDashboard extends Controller {
         if ($username !== $user['username']) {
             if (!v::notEmpty()->alnum('-_')->length(3, 50)->validate($username)) {
                 $errors['username'] = 'Username must be 3-50 characters and may contain alphanumeric characters, dashes and underscores';
+                Logger::warning("Invalid username format", ['username' => $username]);
             } else {
                 // Check if username is already taken
                 $existingUser = $db->get('users', ['user_id'], ['username' => $username]);
                 if ($existingUser && $existingUser['user_id'] != $userId) {
                     $errors['username'] = 'This username is already taken';
+                    Logger::warning("Username already taken", ['username' => $username]);
                 } else {
                     $db->update('users', ['username' => $username], ['user_id' => $userId]);
                     $_SESSION['username'] = $username;
                     $success[] = 'Username updated successfully';
+                    Logger::info("Username updated", ['user_id' => $userId, 'new_username' => $username]);
                 }
             }
         }
@@ -184,106 +194,129 @@ class UserDashboard extends Controller {
         if ($email !== $user['email']) {
             if (!v::email()->validate($email)) {
                 $errors['email'] = 'Please enter a valid email address';
+                Logger::warning("Invalid email format", ['email' => $email]);
             } else {
                 // Check if email is already registered
                 $existingUser = $db->get('users', ['user_id'], ['email' => $email]);
                 if ($existingUser && $existingUser['user_id'] != $userId) {
                     $errors['email'] = 'This email is already registered';
+                    Logger::warning("Email already registered", ['email' => $email]);
                 } else {
                     $db->update('users', ['email' => $email], ['user_id' => $userId]);
                     $success[] = 'Email updated successfully';
+                    Logger::info("Email updated", ['user_id' => $userId, 'new_email' => $email]);
                 }
             }
         }
         
         // Update bio
         $db->update('users', ['bio' => $bio], ['user_id' => $userId]);
+        Logger::info("Bio updated", ['user_id' => $userId]);
         
         // Update password if provided
         if (!empty($currentPassword) && !empty($newPassword)) {
             // Verify current password
             if (!password_verify($currentPassword, $user['password_hash'])) {
                 $errors['current_password'] = 'Current password is incorrect';
+                Logger::warning("Incorrect current password provided", ['user_id' => $userId]);
             } else if ($newPassword !== $confirmPassword) {
                 $errors['confirm_password'] = 'New passwords do not match';
+                Logger::warning("New passwords do not match", ['user_id' => $userId]);
             } else if (!v::notEmpty()->length(8, null)->validate($newPassword)) {
                 $errors['new_password'] = 'New password must be at least 8 characters';
+                Logger::warning("New password too short", ['user_id' => $userId]);
             } else {
                 // Hash new password
                 $passwordHash = password_hash($newPassword, PASSWORD_DEFAULT);
                 $db->update('users', ['password_hash' => $passwordHash], ['user_id' => $userId]);
                 $success[] = 'Password updated successfully';
+                Logger::info("Password updated successfully", ['user_id' => $userId]);
             }
         }
         
-        // Handle profile image upload
+        // Handle profile image upload with improved error handling
         if ($request->files->has('profile_image')) {
-            // Debug information
-            $errors['debug'] = 'Files present: ' . ($request->files->has('profile_image') ? 'Yes' : 'No');
-            
             $file = $request->files->get('profile_image');
-            if ($file === null) {
-                $errors['debug'] .= ' | File is null';
-            } else {
-                $errors['debug'] .= ' | File size: ' . $file->getSize();
-                $errors['debug'] .= ' | File name: ' . $file->getClientOriginalName();
+            
+            if ($file !== null && $file->getSize() > 0) {
+                Logger::info("Profile image upload started", [
+                    'file_name' => $file->getClientOriginalName(),
+                    'file_size' => $file->getSize(),
+                    'mime_type' => $file->getMimeType()
+                ]);
                 
-                if ($file->getError() !== UPLOAD_ERR_OK) {
-                    $errorCodes = [
-                        UPLOAD_ERR_INI_SIZE => 'File exceeds upload_max_filesize',
-                        UPLOAD_ERR_FORM_SIZE => 'File exceeds MAX_FILE_SIZE in form',
-                        UPLOAD_ERR_PARTIAL => 'File was only partially uploaded',
-                        UPLOAD_ERR_NO_FILE => 'No file was uploaded',
-                        UPLOAD_ERR_NO_TMP_DIR => 'Missing temporary folder',
-                        UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk',
-                        UPLOAD_ERR_EXTENSION => 'A PHP extension stopped the upload'
-                    ];
-                    $errorCode = $file->getError();
-                    $errorMessage = isset($errorCodes[$errorCode]) ? $errorCodes[$errorCode] : 'Unknown error';
-                    $errors['debug'] .= ' | Upload error: ' . $errorMessage . ' (code: ' . $errorCode . ')';
-                }
+                // Basic validation before attempting to upload
+                $mimeType = $file->getMimeType();
+                $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                $maxFileSize = 2 * 1024 * 1024; // 2MB
                 
-                if ($file->isValid()) {
-                    $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
-                    
-                    if (!in_array($file->getMimeType(), $allowedTypes)) {
-                        $errors['profile_image'] = 'Only JPEG, PNG, and GIF images are allowed';
-                        $errors['debug'] .= ' | Invalid mime type: ' . $file->getMimeType();
-                    } else if ($file->getSize() > 2 * 1024 * 1024) {
-                        $errors['profile_image'] = 'Image size must be less than 2MB';
-                        $errors['debug'] .= ' | File too large: ' . $file->getSize();
-                    } else {
-                        // Generate unique filename
-                        $filename = uniqid('profile_') . '.' . $file->getClientOriginalExtension();
-                        $uploadDir = __DIR__ . '/../../public/assets/images/profiles/';
-                        
-                        // Create directory if it doesn't exist
-                        if (!is_dir($uploadDir)) {
-                            mkdir($uploadDir, 0755, true);
-                            $errors['debug'] .= ' | Created directory: ' . $uploadDir;
-                        }
-                        
-                        try {
-                            // Move uploaded file
-                            $file->move($uploadDir, $filename);
-                            
-                            // Check if file was actually moved
-                            if (file_exists($uploadDir . $filename)) {
-                                // Update database
-                                $profileImage = '/assets/images/profiles/' . $filename;
-                                $db->update('users', ['profile_image' => $profileImage], ['user_id' => $userId]);
-                                $success[] = 'Profile image updated successfully';
-                                $errors['debug'] .= ' | File moved successfully to: ' . $uploadDir . $filename;
-                            } else {
-                                $errors['debug'] .= ' | File move failed, file not found at destination';
-                            }
-                        } catch (\Exception $e) {
-                            $errors['debug'] .= ' | Exception: ' . $e->getMessage();
-                        }
-                    }
+                if (!in_array($mimeType, $allowedTypes)) {
+                    $errors['profile_image'] = 'Only JPEG, PNG, GIF, and WebP images are allowed';
+                    Logger::warning("Invalid file type uploaded", [
+                        'user_id' => $userId,
+                        'mime_type' => $mimeType
+                    ]);
+                } elseif ($file->getSize() > $maxFileSize) {
+                    $errors['profile_image'] = 'Image size must be less than 2MB';
+                    Logger::warning("File too large", [
+                        'user_id' => $userId,
+                        'size' => $file->getSize()
+                    ]);
                 } else {
-                    $errors['debug'] .= ' | File is not valid';
+                    // Use our FileUploader class
+                    $uploadDir = realpath(__DIR__ . '/../../public/assets/images/profiles') . DIRECTORY_SEPARATOR;
+                    
+                    $uploader = new FileUploader($uploadDir, $allowedTypes, $maxFileSize);
+                    $filename = 'profile_' . $userId . '_' . time();
+                    
+                    // Log diagnostic information
+                    Logger::info("Upload directory info", [
+                        'upload_dir' => $uploadDir,
+                        'upload_dir_exists' => is_dir($uploadDir) ? 'yes' : 'no',
+                        'upload_dir_writable' => is_writable($uploadDir) ? 'yes' : 'no'
+                    ]);
+                    
+                    if ($uploadedFilename = $uploader->upload($file, $filename)) {
+                        // Sanitize path before storing in database
+                        $profileImage = '/assets/images/profiles/' . basename($uploadedFilename);
+                        
+                        // Verify the file exists at the expected location
+                        $fullPath = realpath(__DIR__ . '/../../public') . $profileImage;
+                        if (!file_exists($fullPath)) {
+                            $errors['profile_image'] = 'Error verifying uploaded file';
+                            Logger::error("File not found after upload", [
+                                'expected_path' => $fullPath
+                            ]);
+                        } else {
+                            // Update database with the new profile image path
+                            $db->update('users', ['profile_image' => $profileImage], ['user_id' => $userId]);
+                            
+                            // Update session with new profile image path
+                            if (session_status() === PHP_SESSION_NONE) {
+                                session_start();
+                            }
+                            $_SESSION['profile_image'] = $profileImage;
+                            
+                            $success[] = 'Profile image updated successfully';
+                            Logger::info("Profile image updated successfully", [
+                                'user_id' => $userId,
+                                'file_path' => $profileImage
+                            ]);
+                        }
+                    } else {
+                        // Add upload errors to the errors array
+                        $errors['profile_image'] = $uploader->getLastError();
+                        Logger::error("Profile image upload failed", [
+                            'user_id' => $userId,
+                            'errors' => $uploader->getErrors()
+                        ]);
+                    }
                 }
+            } else {
+                Logger::warning("Empty or invalid profile image file uploaded", [
+                    'file' => $file ? 'present' : 'null',
+                    'size' => $file ? $file->getSize() : 0
+                ]);
             }
         }
         
@@ -309,10 +342,19 @@ class UserDashboard extends Controller {
                 'language' => $language,
                 'theme' => $theme
             ]);
+            Logger::info("Created new user settings", ['user_id' => $userId]);
+        } else {
+            Logger::info("Updated user settings", ['user_id' => $userId]);
         }
         
         if (empty($errors)) {
             $success[] = 'Settings updated successfully';
+            Logger::info("Settings update completed successfully", ['user_id' => $userId]);
+        } else {
+            Logger::warning("Settings update completed with errors", [
+                'user_id' => $userId,
+                'errors' => $errors
+            ]);
         }
         
         // Render settings view with success/error messages
@@ -353,6 +395,9 @@ class UserDashboard extends Controller {
                     $_SESSION['user_id'] = $user['user_id'];
                     $_SESSION['username'] = $user['username'];
                     $_SESSION['role'] = $user['role'];
+                    
+                    // Store profile image in session
+                    $_SESSION['profile_image'] = $user['profile_image'];
                     
                     return true;
                 }

@@ -85,7 +85,8 @@ class Controller
         include $this->viewPath . $view . '.php';
         $content = ob_get_clean();
         
-        return new Response($content);
+        $response = new Response($content);
+        return $this->addSecurityHeaders($response);
     }
     
     /**
@@ -100,7 +101,7 @@ class Controller
         $response->headers->set('Location', $url);
         $response->setStatusCode(Response::HTTP_FOUND);
         
-        return $response;
+        return $this->addSecurityHeaders($response);
     }
     
     /**
@@ -114,6 +115,23 @@ class Controller
     {
         $response = new Response(json_encode($data), $status);
         $response->headers->set('Content-Type', 'application/json');
+        
+        return $this->addSecurityHeaders($response);
+    }
+    
+    /**
+     * Add security headers to response
+     * 
+     * @param Response $response
+     * @return Response
+     */
+    protected function addSecurityHeaders(Response $response): Response
+    {
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
+        $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
+        $response->headers->set('X-XSS-Protection', '1; mode=block');
+        $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
+        $response->headers->set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;");
         
         return $response;
     }

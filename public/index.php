@@ -5,6 +5,7 @@ require __DIR__ . '/../vendor/autoload.php';
 use FastRoute\RouteCollector;
 use Kpzsproductions\Challengify\Controllers\HomeController;
 use Kpzsproductions\Challengify\Controllers\AuthController;
+use Kpzsproductions\Challengify\Controllers\AdminController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -39,6 +40,31 @@ $dispatcher = FastRoute\simpleDispatcher(function(RouteCollector $r) {
     // User settings
     $r->addRoute('GET', '/settings', 'Controllers\\UserDashboard::settings');
     $r->addRoute('POST', '/update-settings', 'Controllers\\UserDashboard::updateSettings');
+
+    // Challenges
+    $r->addRoute('GET', '/challenges', 'Controllers\\ChellengesController::index');
+    
+    // Admin routes
+    $r->addRoute('GET', '/admin', 'Controllers\\AdminController::index');
+    $r->addRoute('GET', '/admin/logs', 'Controllers\\AdminController::viewLogs');
+    $r->addRoute('GET', '/admin/logs/clear', 'Controllers\\AdminController::clearLogs');
+    
+    // Debug routes
+    $r->addRoute('GET', '/check_session', function() {
+        require __DIR__ . '/check_session.php';
+        return '';
+    });
+    
+    $r->addRoute('GET', '/fix_admin_role', function() {
+        require __DIR__ . '/fix_admin_role.php';
+        return '';
+    });
+
+    // About
+    $r->addRoute('GET', '/about', 'Controllers\\AboutController::index');
+
+    // Contact
+    $r->addRoute('GET', '/contact', 'Controllers\\ContactController::index');
 });
 
 // Parse the URL path
@@ -66,10 +92,16 @@ switch ($routeInfo[0]) {
         $vars = $routeInfo[2];
         
         // Call the handler
-        list($class, $method) = explode('::', $handler, 2);
-        $class = "Kpzsproductions\\Challengify\\$class";
-        $controller = new $class();
-        $response = $controller->$method($request, $vars);
+        if (is_callable($handler)) {
+            // Handle anonymous functions
+            $response = $handler($request, $vars);
+        } else {
+            // Handle controller methods
+            list($class, $method) = explode('::', $handler, 2);
+            $class = "Kpzsproductions\\Challengify\\$class";
+            $controller = new $class();
+            $response = $controller->$method($request, $vars);
+        }
         
         // If the response is not an instance of Response, create one
         if (!$response instanceof Response) {

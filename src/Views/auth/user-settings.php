@@ -8,6 +8,8 @@
     <link href="/assets/css/vendor/tailwind.min.css" rel="stylesheet">
     <link href="/assets/css/style.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+       <!-- Font Awesome -->
+       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-gray-50">
     <!-- Navbar -->
@@ -35,8 +37,8 @@
                         <div class="relative">
                             <button type="button" class="flex items-center max-w-xs text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-white" id="user-menu-button" aria-expanded="false" aria-haspopup="true" onclick="document.getElementById('user-dropdown').classList.toggle('hidden')">
                                 <span class="sr-only">Open user menu</span>
-                                <?php if (!empty($user['profile_image'])): ?>
-                                    <img class="h-8 w-8 rounded-full" src="<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Profile">
+                                <?php if (!empty($_SESSION['profile_image'])): ?>
+                                    <img class="h-8 w-8 rounded-full" src="<?php echo htmlspecialchars($_SESSION['profile_image']); ?>" alt="Profile">
                                 <?php else: ?>
                                     <div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
                                         <?php echo strtoupper(substr($_SESSION['username'], 0, 1)); ?>
@@ -78,8 +80,8 @@
                 <a href="/dashboard" class="block text-white px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700 transition duration-300">Dashboard</a>
                 <a href="/settings" class="block bg-blue-600 bg-opacity-50 text-white px-3 py-2 rounded-md text-base font-medium">Settings</a>
                 <div class="flex items-center px-3 py-2">
-                    <?php if (!empty($user['profile_image'])): ?>
-                        <img class="h-8 w-8 rounded-full" src="<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Profile">
+                    <?php if (!empty($_SESSION['profile_image'])): ?>
+                        <img class="h-8 w-8 rounded-full" src="<?php echo htmlspecialchars($_SESSION['profile_image']); ?>" alt="Profile">
                     <?php else: ?>
                         <div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
                             <?php echo strtoupper(substr($_SESSION['username'], 0, 1)); ?>
@@ -131,8 +133,8 @@
                         <div class="md:col-span-1">
                             <div class="flex flex-col items-center">
                                 <div class="mb-4">
-                                    <?php if (!empty($user['profile_image'])): ?>
-                                        <img id="profile-preview" class="h-32 w-32 rounded-full object-cover" src="<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Profile">
+                                    <?php if (!empty($_SESSION['profile_image'])): ?>
+                                        <img id="profile-preview" class="h-32 w-32 rounded-full object-cover" src="<?php echo htmlspecialchars($_SESSION['profile_image']); ?>" alt="Profile">
                                     <?php else: ?>
                                         <div id="profile-preview" class="h-32 w-32 rounded-full bg-blue-600 flex items-center justify-center text-white text-4xl">
                                             <?php echo strtoupper(substr($_SESSION['username'], 0, 1)); ?>
@@ -141,14 +143,23 @@
                                 </div>
                                 <div class="mb-4">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Profile Image</label>
-                                    <input type="file" name="profile_image" id="profile_image" class="hidden" accept="image/jpeg,image/png,image/gif" onchange="previewImage(this)">
+                                    <input type="file" name="profile_image" id="profile_image" class="hidden" accept="image/jpeg,image/png,image/gif,image/webp" onchange="previewImage(this)">
                                     <label for="profile_image" class="cursor-pointer py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
                                         Choose Image
                                     </label>
                                     <?php if (!empty($errors['profile_image'])): ?>
                                         <p class="mt-1 text-sm text-red-600"><?php echo htmlspecialchars($errors['profile_image']); ?></p>
                                     <?php endif; ?>
-                                    <p class="mt-1 text-xs text-gray-500">Max size: 2MB. JPG, PNG or GIF.</p>
+                                    <p class="mt-1 text-xs text-gray-500">Max size: 2MB. JPG, PNG, GIF or WebP.</p>
+                                    
+                                    <!-- Loading indicator (hidden by default) -->
+                                    <div id="upload-loading" class="hidden mt-2 flex items-center">
+                                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        <span class="text-sm text-gray-700">Uploading image...</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -310,11 +321,41 @@
                     document.getElementById(tabId + '-tab').classList.remove('hidden');
                 });
             });
+            
+            // Set up form submission
+            const settingsForm = document.querySelector('form[action="/update-settings"]');
+            if (settingsForm) {
+                settingsForm.addEventListener('submit', function(e) {
+                    // Check if file input has a file selected
+                    const fileInput = document.getElementById('profile_image');
+                    if (fileInput && fileInput.files.length > 0) {
+                        // Show loading indicator
+                        document.getElementById('upload-loading').classList.remove('hidden');
+                    }
+                });
+            }
         });
         
         // Profile image preview
         function previewImage(input) {
             if (input.files && input.files[0]) {
+                const file = input.files[0];
+                
+                // Validate file type
+                const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                if (!validTypes.includes(file.type)) {
+                    alert('Only JPEG, PNG, GIF, and WebP images are allowed');
+                    input.value = '';
+                    return;
+                }
+                
+                // Validate file size (max 2MB)
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('Image size must be less than 2MB');
+                    input.value = '';
+                    return;
+                }
+                
                 const reader = new FileReader();
                 
                 reader.onload = function(e) {
@@ -334,7 +375,7 @@
                     }
                 }
                 
-                reader.readAsDataURL(input.files[0]);
+                reader.readAsDataURL(file);
             }
         }
     </script>
